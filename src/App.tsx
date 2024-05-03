@@ -18,13 +18,10 @@ export default function App() {
 
         formData.append("docx", file as any)
 
-        const res = await fetch(
-            "https://preproduction-lhoopa.cornerstone.ph/dev/sales_transactions/rest/docx_to_pdf?user_id=23&token=xerd321",
-            {
-                method: "POST",
-                body: formData,
-            }
-        )
+        const res = await fetch(import.meta.env.VITE_API_URL, {
+            method: "POST",
+            body: formData,
+        })
 
         const blob = new Blob([await res.blob()], { type: "application/pdf" })
         const url = URL.createObjectURL(blob)
