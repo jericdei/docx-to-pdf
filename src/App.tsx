@@ -1,35 +1,76 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react"
+import { Loading } from "./components/Loading"
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+    const [file, setFile] = useState<File | null>(null)
+    const [loading, setLoading] = useState(false)
+    const [url, setUrl] = useState<any>(null)
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setFile(e.target.files[0])
+        }
+    }
+
+    const handleConvert = async () => {
+        setLoading(true)
+        const formData = new FormData()
+
+        formData.append("docx", file as any)
+
+        const res = await fetch(
+            "https://preproduction-lhoopa.cornerstone.ph/dev/sales_transactions/rest/docx_to_pdf?user_id=23&token=xerd321",
+            {
+                method: "POST",
+                body: formData,
+            }
+        )
+
+        const blob = new Blob([await res.blob()], { type: "application/pdf" })
+        const url = URL.createObjectURL(blob)
+
+        setUrl(url)
+        setLoading(false)
+    }
+
+    return (
+        <main className="grid min-h-screen place-items-center bg-slate-700 p-24 text-slate-50">
+            {loading ? (
+                <Loading />
+            ) : url ? (
+                <div className="w-full">
+                    <iframe src={url} className="h-[50rem] w-full"></iframe>
+
+                    <button
+                        className="mx-auto mt-4 block w-1/4 rounded bg-blue-700 px-4 py-2 font-bold text-slate-50"
+                        onClick={() => setUrl(null)}
+                    >
+                        Convert again
+                    </button>
+                </div>
+            ) : (
+                <div>
+                    <h1 className="text-4xl font-bold">
+                        DOCX to PDF Converter
+                    </h1>
+
+                    <input
+                        className="mt-8"
+                        type="file"
+                        name="file"
+                        accept=".docx"
+                        onChange={handleFileChange}
+                    />
+
+                    <button
+                        className="mt-4 block w-full rounded bg-blue-700 px-4 py-2 font-bold text-slate-50"
+                        type="submit"
+                        onClick={handleConvert}
+                    >
+                        Convert
+                    </button>
+                </div>
+            )}
+        </main>
+    )
 }
-
-export default App
